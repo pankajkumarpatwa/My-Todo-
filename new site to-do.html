@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple To-Do site</title>
+    <!-- Tailwind CSS CDN for easy styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for the To-Do app */
+        body {
+            font-family: 'Inter', sans-serif; /* Using Inter font as per instructions */
+            background-color: #2f6caa; /* Light background color */
+            background-image: linear-gradient(135deg, #2f6caa, #218d57); /* Gradient background */
+            color: #1f2937; /* Dark text color */
+               /* Center the content vertically and horizontally */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* Full viewport height */
+            margin: 0;
+            padding: 20px; /* Add some padding for smaller screens */
+            box-sizing: border-box; /* Include padding in element's total width and height */
+        }
+
+        .container {
+            background-color: #ffffff; /* White background for the app container */
+            padding: 2.5rem; /* Increased padding */
+            border-radius: 1rem; /* More rounded corners */
+            box-shadow: 0 10px 25px rgba(21, 1, 240, 0.1); /* Soft shadow */
+            width: 100%;
+            max-width: 500px; /* Max width for desktop */
+            box-sizing: border-box;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #f8fafc; /* Light background for each task */
+            padding: 0.75rem 1rem; /* Padding for task items */
+            margin-bottom: 0.75rem; /* Space between tasks */
+            border-radius: 0.5rem; /* Rounded corners for task items */
+            border: 1px solid #e2e8f0; /* Light border */
+            transition: all 0.3s ease; /* Smooth transition for hover effects */
+        }
+
+        .task-item.completed {
+            background-color: #e6fffa; /* Greenish background for completed tasks */
+            border-color: #81e6d9; /* Greenish border */
+        }
+
+        .task-item.completed .task-text {
+            text-decoration: line-through; /* Strikethrough for completed tasks */
+            color: #64748b; /* Lighter color for completed text */
+        }
+
+        .task-text {
+            flex-grow: 1; /* Allow text to take available space */
+            margin-right: 1rem; /* Space between text and buttons */
+            word-break: break-word; /* Break long words */
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 0.5rem; /* Space between action buttons */
+        }
+
+        .task-actions button {
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            white-space: nowrap; /* Prevent button text from wrapping */
+        }
+
+        .task-actions button:hover {
+            transform: translateY(-1px); /* Slight lift on hover */
+        }
+
+        .add-button {
+            background-color: #4f46e5; /* Indigo color for add button */
+            color: white;
+            border: none;
+        }
+
+        .add-button:hover {
+            background-color: #4338ca; /* Darker indigo on hover */
+        }
+
+        .complete-button {
+            background-color: #10b981; /* Green for complete button */
+            color: white;
+            border: none;
+        }
+
+        .complete-button:hover {
+            background-color: #059669; /* Darker green on hover */
+        }
+
+        .delete-button {
+            background-color: #ef4444; /* Red for delete button */
+            color: white;
+            border: none;
+        }
+
+        .delete-button:hover {
+            background-color: #dc2626; /* Darker red on hover */
+        }
+
+        .elaborate-button {
+            background-color: #f97316; /* Orange for elaborate button */
+            color: white;
+            border: none;
+        }
+
+        .elaborate-button:hover {
+            background-color: #ea580c; /* Darker orange on hover */
+        }
+
+        /* Styling for the source code section */
+        .source-code-section {
+            background-color: #2d3748; /* Dark background for code */
+            color: #e2e8f0; /* Light text color */
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            margin-top: 2rem; /* Space above the section */
+            overflow-x: auto; /* Allow horizontal scrolling for long lines */
+        }
+
+        .source-code-section pre {
+            margin: 0;
+            white-space: pre-wrap; /* Wrap long lines */
+            word-break: break-all; /* Break words if necessary */
+        }
+
+        /* Styling for task elaboration content */
+        .elaboration-content {
+            background-color: #ecfdf5; /* Light green background */
+            border-left: 4px solid #34d399; /* Green left border */
+            padding: 1rem;
+            margin-top: 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 0.9rem;
+            color: #10b981; /* Dark green text */
+            white-space: pre-wrap; /* Preserve formatting from LLM */
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 640px) {
+            .container {
+                padding: 1.5rem; /* Less padding on small screens */
+                border-radius: 0.75rem;
+            }
+
+            .task-item {
+                flex-direction: column; /* Stack items vertically on small screens */
+                align-items: flex-start;
+                padding: 0.75rem;
+            }
+
+            .task-text {
+                margin-bottom: 0.5rem; /* Space between text and buttons when stacked */
+                margin-right: 0;
+            }
+
+            .task-actions {
+                width: 100%; /* Make buttons full width */
+                justify-content: flex-end; /* Align buttons to the right */
+                flex-wrap: wrap; /* Allow buttons to wrap to next line */
+            }
+
+            .task-actions button {
+                flex: 1 1 auto; /* Allow buttons to grow and shrink */
+                min-width: 80px; /* Minimum width for buttons */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">My To-Do List</h1>
+
+        <div class="flex flex-col sm:flex-row gap-3 mb-6">
+            <input
+                type="text"
+                id="taskInput"
+                placeholder="Add a new task..."
+                class="flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+            <button id="addTaskButton" class="add-button px-6 py-3 rounded-lg text-lg font-semibold">
+                Add Task
+            </button>
+        </div>
+
+        <ul id="taskList" class="space-y-3">
+            <!-- To-Do items will be added here by JavaScript -->
+        </ul>
+            </code></pre>
+        </div>
+    </div>
+
+    <script>
+        // Get references to HTML elements
+        const taskInput = document.getElementById('taskInput');
+        const addTaskButton = document.getElementById('addTaskButton');
+        const taskList = document.getElementById('taskList');
+
+        // Gemini API Key (leave empty, Canvas will provide it at runtime)
+        const apiKey = "";
+
+        // Function to call Gemini API for task elaboration
+        async function elaborateTask(taskText, elaborationDiv) {
+            elaborationDiv.innerHTML = '<div class="text-center text-gray-500">Loading elaboration...</div>';
+            elaborationDiv.style.display = 'block'; // Show elaboration div
+
+            try {
+                let chatHistory = [];
+                const prompt = `Elaborate on the following task, breaking it down into smaller steps or providing helpful details. Be concise and use bullet points if appropriate:\n\nTask: "${taskText}"`;
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+                const payload = { contents: chatHistory };
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`API error: ${response.status} - ${errorData.error.message || 'Unknown error'}`);
+                }
+
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    elaborationDiv.textContent = text; // Display the response text
+                } else {
+                    elaborationDiv.textContent = 'Could not elaborate on the task. No content received.';
+                }
+            } catch (error) {
+                console.error('Error elaborating task:', error);
+                elaborationDiv.textContent = `Error: ${error.message}. Please try again.`;
+            }
+        }
+
+        // Function to add a new task
+        function addTask() {
+            const taskText = taskInput.value.trim(); // Get task text and remove leading/trailing whitespace
+
+            // Check if the input is not empty
+            if (taskText !== '') {
+                // Create a new list item (li) for the task
+                const listItem = document.createElement('li');
+                listItem.classList.add('task-item', 'flex-col', 'sm:flex-row', 'items-start', 'sm:items-center'); // Add base styling classes
+
+                // Create a container for the task text and actions (to allow stacking on small screens)
+                const taskContentWrapper = document.createElement('div');
+                taskContentWrapper.classList.add('flex', 'flex-col', 'sm:flex-row', 'w-full', 'items-start', 'sm:items-center', 'gap-2', 'sm:gap-0');
+
+                // Create a span for the task text
+                const taskTextSpan = document.createElement('span');
+                taskTextSpan.classList.add('task-text');
+                taskTextSpan.textContent = taskText; // Set the text content
+
+                // Create a div for action buttons (complete, delete, and elaborate)
+                const taskActionsDiv = document.createElement('div');
+                taskActionsDiv.classList.add('task-actions', 'w-full', 'sm:w-auto', 'justify-end');
+
+                // Create the "Complete" button
+                const completeButton = document.createElement('button');
+                completeButton.classList.add('complete-button');
+                completeButton.textContent = 'Complete';
+                completeButton.addEventListener('click', () => {
+                    // Toggle the 'completed' class on the list item when clicked
+                    listItem.classList.toggle('completed');
+                });
+
+                // Create the "Delete" button
+                const deleteButton = document.createElement('button');
+                deleteButton.classList.add('delete-button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.addEventListener('click', () => {
+                    // Remove the list item from the task list when clicked
+                    taskList.removeChild(listItem);
+                });
+
+                // Create the "Elaborate Task" button
+                const elaborateButton = document.createElement('button');
+                elaborateButton.classList.add('elaborate-button');
+                elaborateButton.textContent = '✨ Elaborate Task';
+
+                // Create a div to display the elaboration content
+                const elaborationContentDiv = document.createElement('div');
+                elaborationContentDiv.classList.add('elaboration-content', 'hidden', 'w-full'); // Initially hidden
+
+                elaborateButton.addEventListener('click', () => {
+                    if (elaborationContentDiv.style.display === 'block') {
+                        elaborationContentDiv.style.display = 'none'; // Hide if already visible
+                        elaborationContentDiv.textContent = ''; // Clear content
+                    } else {
+                        elaborateTask(taskText, elaborationContentDiv); // Call LLM to elaborate
+                    }
+                });
+
+                // Append the buttons to the actions div
+                taskActionsDiv.appendChild(completeButton);
+                taskActionsDiv.appendChild(deleteButton);
+                taskActionsDiv.appendChild(elaborateButton);
+
+                // Append the text span and actions div to the content wrapper
+                taskContentWrapper.appendChild(taskTextSpan);
+                taskContentWrapper.appendChild(taskActionsDiv);
+
+                // Append the content wrapper and elaboration div to the list item
+                listItem.appendChild(taskContentWrapper);
+                listItem.appendChild(elaborationContentDiv);
+
+                // Append the new list item to the task list
+                taskList.appendChild(listItem);
+
+                // Clear the input field after adding the task
+                taskInput.value = '';
+            } else {
+                console.log("Task input cannot be empty!");
+            }
+        }
+
+        // Add event listener to the "Add Task" button
+        addTaskButton.addEventListener('click', addTask);
+
+        // Allow adding tasks by pressing Enter key in the input field
+        taskInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                addTask();
+            }
+        });
+    </script>
+</body>
+</html>
